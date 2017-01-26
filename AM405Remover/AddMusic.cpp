@@ -1357,6 +1357,7 @@ void AddMusic::adjust_address(int num)
 
 	return;
 }
+#endif
 
 /***************************************************************
 Sound Effect
@@ -1751,7 +1752,6 @@ bool AddMusic::mml_to_se(FILE *txt, cstring& se, int num, int port, bool b_smkds
 	}
 	return (!b_error);
 }
-#endif
 
 /***************************************************************
 helper

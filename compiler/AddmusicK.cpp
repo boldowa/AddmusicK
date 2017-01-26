@@ -10,7 +10,7 @@
 #include "../AM405Remover/AM405Remover.h"
 #include <boost/filesystem.hpp>
 #include <cstdint>
-#include "lodepng.h"
+//#include "lodepng.h"
 #include <thread>
 
 
@@ -241,10 +241,8 @@ int main(int argc, char* argv[])
 	fixMusicPointers();
 
 	generateSPCs();
-
 	if (visualizeSongs)
 		generatePNGs();
-	
 	if (justSPCsPlease == false)
 	{
 		assembleSNESDriver2();
@@ -2008,6 +2006,9 @@ recompile:
 
 void generatePNGs()
 {
+	std::cout << "generatePNG isn't supported." << std::endl;
+	return;
+#if 0
 	for (auto &current : musics)
 	{
 		if (current.index <= highestGlobalSong) continue;
@@ -2109,7 +2110,7 @@ void generatePNGs()
 
 
 	}
-
+#endif
 
 }
 
