@@ -23,7 +23,14 @@
 *.a
 *.lib
 
+# Compile depends
+*.d
+*.dep
+
 # Executables
 *.exe
 *.out
 *.app
+
+# tags
+tags
