@@ -1,7 +1,10 @@
-#ifndef _FILE_H
-#define _FILE_H
+//------------------------------------------------
+// File.h
+//
+//   author: Kipernal
+//------------------------------------------------
+#pragma once
 
-#include <string>
 class File
 {
 
@@ -85,4 +88,3 @@ public:
 	}
 };
 
-#endif

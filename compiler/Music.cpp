@@ -1,13 +1,13 @@
+//------------------------------------------------
+// Music.cpp
+//
+//   author: Kipernal
+//------------------------------------------------
+#include "gstdafx.hpp"
+#include "globals.h"
 #include "Music.h"
 //#include "globals.h"
 //#include "Sample.h"
-
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-#include <cmath>
-#include <sstream>
-#include <algorithm>
 
 //#include "Preprocessor.h"
 

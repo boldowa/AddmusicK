@@ -1,17 +1,12 @@
-#include <sstream>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <iomanip>
-#include <cstring>
-#include <cstdlib>
+//------------------------------------------------
+// Precompile Header
+//
+//   author: Kipernal
+//------------------------------------------------
+#include "gstdafx.hpp"
 #include "globals.h"
-#include <ctime>
 #include "../AM405Remover/AM405Remover.h"
-#include <boost/filesystem.hpp>
-#include <cstdint>
 //#include "lodepng.h"
-#include <thread>
 
 
 bool waitAtEnd = true;

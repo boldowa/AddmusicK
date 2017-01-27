@@ -1,7 +1,9 @@
-#ifndef _SOUNDEFFECT_H
-#define _SOUNDEFFECT_H
-
-#include "globals.h"
+//------------------------------------------------
+// globals.h
+//
+//   author: Kipernal
+//------------------------------------------------
+#pragma once
 
 class SoundEffect
 {
@@ -51,4 +53,3 @@ public:
 
 };
 
-#endif

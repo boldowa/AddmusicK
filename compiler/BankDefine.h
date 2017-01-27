@@ -1,5 +1,9 @@
-#ifndef _BANKDEFINE_H
-#define _BANKDEFINE_H
+//------------------------------------------------
+// BankDefine.h
+//
+//   author: Kipernal
+//------------------------------------------------
+#pragma once
 
 class BankDefine
 {
@@ -9,4 +13,3 @@ public:
 	std::vector<bool> importants;
 };
 
-#endif

@@ -1,10 +1,15 @@
+//------------------------------------------------
+// globals.h
+//
+//   author: Kipernal
+//------------------------------------------------
+#pragma once
+
 #define BOOST_LIB_DIAGNOSTIC
 #ifdef _WIN32
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#ifndef _GLOBALS_H
-#define _GLOBALS_H
 
 //#if defined(linux) && !defined(stricmp)
 //#error Please use -Dstrnicmp=strncasecmp on Unix-like systems.
@@ -41,16 +46,10 @@ class SampleGroup;
 #include "Sample.h"
 #include "SoundEffect.h"
 #include "SampleGroup.h"
-#include "Directory.h"
+#include "File.h"
 #include "BankDefine.h"
-#include <string>
-#include <vector>
-#include <fstream>
-#include <map>
-#include "Directory.h"
+#include "File.h"
 #include "asardll.h"
-#include <sys/types.h>
-#include <sys/stat.h>
 
 
 //extern ROM rom;
@@ -163,4 +162,3 @@ int strToInt(const std::string &str);
 
 time_t getTimeStamp(const File &file);
 
-#endif

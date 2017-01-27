@@ -1,7 +1,9 @@
-#ifndef _SAMPLE_H
-#define _SAMPLE_H
-
-#include "globals.h"
+//------------------------------------------------
+// Sample.h
+//
+//   author: Kipernal
+//------------------------------------------------
+#pragma once
 
 class Sample
 {
@@ -22,4 +24,3 @@ public:
 	}
 };
 
-#endif

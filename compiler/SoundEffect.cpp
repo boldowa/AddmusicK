@@ -1,7 +1,11 @@
+//------------------------------------------------
+// SoundEffect.cpp
+//
+//   author: Kipernal
+//------------------------------------------------
+#include "gstdafx.hpp"
+#include "globals.h"
 #include "SoundEffect.h"
-#include <cmath>
-#include <sstream>
-#include <iomanip>
 
 static unsigned int pos;
 static int line;

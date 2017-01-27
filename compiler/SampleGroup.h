@@ -1,8 +1,9 @@
-#ifndef _SAMPLEGROUP_H
-#define _SAMPLEGROUP_H
-
-#include <string>
-#include <vector>
+//------------------------------------------------
+// SampleGroup.h
+//
+//   author: Kipernal
+//------------------------------------------------
+#pragma once
 
 class SampleGroup 
 {
@@ -11,4 +12,3 @@ public:
 	std::vector<std::string> samples;
 };
 
-#endif

@@ -1,16 +1,11 @@
-#include <fstream>
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <iomanip>
-#include <cstdlib>
-#include <cstring>
-#include <map>
-#include <stack>
+//------------------------------------------------
+// globals.cpp
+//
+//   author: Kipernal
+//------------------------------------------------
+#include "gstdafx.hpp"
 
-#include <boost/filesystem.hpp>
-
-#include "Directory.h"
+#include "File.h"
 #include "globals.h"
 //ROM rom;
 std::vector<byte> rom;

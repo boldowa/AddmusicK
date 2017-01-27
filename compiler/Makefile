@@ -32,8 +32,8 @@ PLATFORM := unix
 ifdef WIN32
 	BINPREFIX := .exe
 	PLATFORM_ := windows
-	CXXFLAGS += -DWIN32 -D_WIN32 --exec-charset=cp932
-	CFLAGS += -DWIN32 -D_WIN32 --exec-charset=cp932
+	CXXFLAGS += -DWIN32 -D_WIN32 #--exec-charset=cp932
+	CFLAGS += -DWIN32 -D_WIN32 #--exec-charset=cp932
 	LDFLAGS += -static-libgcc -static-libstdc++
 ifdef x64
 	PLATFORM := $(addsuffix /x64,$(PLATFORM_))
@@ -65,6 +65,11 @@ CFLAGS		+= -ffast-math -ffunction-sections -fdata-sections
 # precompile header
 #PRECOMPILE_HEADER := gstdafx.hpp
 
+#ifdef PRECOMPILE_HEADER
+#	CXXFLAGS += -include $(PRECOMPILE_HEADER)
+#	CFLAGS += -include $(PRECOMPILE_HEADER)
+#endif
+
 
 #----------------------------------------
 # Link Option
@@ -88,7 +93,7 @@ LDLIBS		+= -Wl,-dy,-lam4remover
 # Main ...
 #--------------------------------------------------
 
-.PHONY: all clean 
+.PHONY: all clean FORCE
 
 # compile option & dest dir
 buildtype := release
@@ -115,9 +120,9 @@ $1_gch := $$(OUTDIR)/obj/$$($1_pch).gch
 endif
 -include $$($1_cppsrc:%.cpp=$$(OUTDIR)/obj/%.d)
 -include $$($1_csrc:%.c=$$(OUTDIR)/obj/%.d)
-$$(OUTDIR)/bin/$1: ../AM405Remover/$(OUTDIR)/bin/libam4remover.a $$($1_gch) $$($1_cppsrc:%.cpp=$$(OUTDIR)/obj/%.o) $$($1_csrc:%.c=$$(OUTDIR)/obj/%.o)
+$$(OUTDIR)/bin/$1$$(BINPREFIX): ../AM405Remover/$(OUTDIR)/bin/libam4remover.a $$($1_gch) $$($1_cppsrc:%.cpp=$$(OUTDIR)/obj/%.o) $$($1_csrc:%.c=$$(OUTDIR)/obj/%.o)
 	@if [ ! -e `dirname $$@` ]; then mkdir -p `dirname $$@`; fi;
-	$$(CXX) $$(LDFLAGS) -o $$@$(BINPREFIX) $$(filter %.o,$$^) $$(LDLIBS)
+	$$(CXX) $$(LDFLAGS) -o $$@ $$(filter %.o,$$^) $$(LDLIBS)
 tags: $$($1_pch) $$($1_cppsrc) $$($1_csrc)
 	@if which ctags >/dev/null ; then \
 	echo -n "Making tags file ... " ;\
@@ -131,7 +136,7 @@ endef
 #----------------------------------------
 # build
 #----------------------------------------
-all: $(foreach i,$(TARGETS),$(OUTDIR)/bin/$i) tags
+all: ../AM405Remover/$(OUTDIR)/bin/libam4remover.a $(foreach i,$(TARGETS),$(OUTDIR)/bin/$i$(BINPREFIX)) tags
 
 $(foreach i,$(TARGETS),$(eval $(call build-rule,$i)))
 
@@ -151,9 +156,9 @@ $(OUTDIR)/obj/%.hpp.gch:%.hpp Makefile
 	$(CXX) $(CXXFLAGS) -o $@ $<
 $(OUTDIR)/obj/%.h.gch:%.h Makefile
 	@if [ ! -e `dirname $@` ]; then mkdir -p `dirname $@`; fi
-	$(CC) $(CXXFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
-../AM405Remover/$(OUTDIR)/bin/libam4remover.a:
+../AM405Remover/$(OUTDIR)/bin/libam4remover.a: FORCE
 ifdef WIN32
 ifdef x64
 	make -C ../AM405Remover/ WIN32=1 x64=1

@@ -1,9 +1,9 @@
-#ifndef _MUSIC_H
-#define _MUSIC_H
-#include <vector>
-#include <string>
-#include <map>
-#include "globals.h"
+//------------------------------------------------
+// Music.h
+//
+//   author: Kipernal
+//------------------------------------------------
+#pragma once
 
 struct SpaceInfo {
 	int songStartPos;
@@ -194,4 +194,3 @@ private:
 	void addNoteLength(double ticks);				// Call this every note.  The correct channel/loop will be automatically updated.
 };
 
-#endif
