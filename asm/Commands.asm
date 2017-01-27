@@ -250,6 +250,7 @@ cmdE5:					; Tremolo on
 	mov   $0361+x, a
 	call  GetCommandDataFast
 ;cmdE6:					; Normally would be tremolo off
+cmdTremoloOff:
 	mov   x, $46
 	mov   $b1+x, a
 	ret
@@ -424,6 +425,13 @@ L_0E55:
 	mov   $0300+x, a
 	call  GetCommandDataFast
 	mov   $0321+x, a
+	ret
+}
+
+cmdPitchEnvOff:
+{
+	mov   x, $46
+	mov   $0300+x, a
 	ret
 }
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -629,19 +637,25 @@ cmdF4:					; Misc. command
 	call	GetCommandData
 	asl	a
 	mov	x,a
+	mov	a, #0
 	jmp	(SubC_table+x)
 
 SubC_table:
-	dw	SubC_0
-	dw	SubC_1
-	dw	SubC_2
-	dw	SubC_3
-	dw	$0000
+	dw	SubC_0			; $00
+	dw	SubC_1			; $01
+	dw	SubC_2			; $02
+	dw	SubC_3			; $03
+	dw	$0000			; $04
 	dw	SubC_5
 	dw	SubC_6
 	dw	SubC_7
 	dw	SubC_8
 	dw	SubC_9
+	dw	cmdTremoloOff
+	dw	cmdPitchEnvOff
+	dw	cmdRemoteCmdResetAll
+	dw	cmdRemoteCmdResetKOn
+	dw	cmdRemoteCmdResetVar
 
 SubC_0:
 	mov     a, $6e				; 
@@ -680,7 +694,6 @@ SubC_3:
 	jmp	EffectModifier
 	
 SubC_5:
-	mov    a, #$00
 	mov    $0167, a
 	mov    $0166, a
 	mov	a,#$02
@@ -694,10 +707,8 @@ SubC_6:
 	bra	SubC_01
 	
 SubC_7:
-	mov	$ffff, a
-	mov	a, #$00				; \ 
-	mov	$0387, a			; | Set the tempo to normal.
-	mov	x, $46				; |
+	mov	$0387, a			;\
+	mov	x, $46				; | Set the tempo to normal.
 	mov	a, $51				; |
 	jmp	L_0E14				; /
 	
@@ -707,8 +718,7 @@ SubC_8:
 	ret					; /
 	
 SubC_9:
-	mov     x, $46				; \ 
-	mov	a, #$00				; | Turn the current instrument back on.
+	mov     x, $46				; \ Turn the current instrument back on. 
 	mov	!BackupSRCN+x, a		; | And make sure it's an instrument, not a sample or something.
 	jmp	RestoreInstrumentInformation	; / This ensures stuff like an instrument's ADSR is restored as well.
 	
@@ -1082,8 +1092,10 @@ ClearRemoteCodeAddressesPre:
 	
 ClearRemoteCodeAddresses:
 	mov	a, #$00
+cmdRemoteCmdResetAll:
 	mov	!remoteCodeTargetAddr2+1+x, a
 	mov	!remoteCodeTargetAddr2+x, a
+cmdRemoteCmdResetVar:
 	mov	!remoteCodeTargetAddr+1+x, a
 	mov	!remoteCodeTargetAddr+x, a
 	mov	!remoteCodeTimeValue+x, a
@@ -1094,6 +1106,13 @@ ClearRemoteCodeAddresses:
 	mov	!runningRemoteCode, a
 	ret
 }
+cmdRemoteCmdResetKOn:
+{
+	mov	!remoteCodeTargetAddr2+1+x, a		; | Note start code; get the address back and store it where it belongs.
+	mov	!remoteCodeTargetAddr2+x, a		; /
+	ret
+}
+
 
 cmdFD:
 cmdFE:
