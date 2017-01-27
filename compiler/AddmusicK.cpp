@@ -49,7 +49,9 @@ int main(int argc, char* argv[])
 {
 	std::clock_t startTime = clock();
 	
-	std::cout << "AddmusicK version " << AMKVERSION << "." << AMKMINOR << "." << AMKREVISION << " by Kipernal" << std::endl;
+	std::cout << "AddmusicK version " << AMKVERSION << "." << AMKMINOR << "." << AMKREVISION << std::endl;
+	std::cout << "1.0.0 - 1.0.4 by Kipernal" << std::endl;
+	std::cout << "1.0.5 by Medic\n" << std::endl;
 	std::cout << "Parser version " << PARSER_VERSION << std::endl << std::endl;
 	std::cout << "Protip: Be sure to read the readme! If there's an error or something doesn't\nseem right, it may have your answer!\n\n" << std::endl;
 	
@@ -168,6 +170,15 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	//----------------------------
+	// Init asar
+	//----------------------------
+	if (asar_init() == false)
+		useAsarDLL = false;
+	else
+		useAsarDLL = true;
+
+
 	if (justSPCsPlease == false)
 	{
 
@@ -177,13 +188,6 @@ int main(int argc, char* argv[])
 			std::getline(std::cin, ROMName.filePath);
 			std::cout << "\n" << std::endl;
 		}
-
-		if (asar_init() == false)
-			useAsarDLL = false;
-		else
-			useAsarDLL = true;
-
-	
 	
 		std::string tempROMName = ROMName.cStr();
 		if (fileExists(tempROMName + ".smc") && fileExists(tempROMName + ".sfc"))
@@ -2025,7 +2029,7 @@ recompile:
 
 void generatePNGs()
 {
-	std::cout << "generatePNG isn't supported." << std::endl;
+	std::cout << "generatePngs(): generatePNGs isn't supported." << std::endl;
 	return;
 #if 0
 	for (auto &current : musics)
