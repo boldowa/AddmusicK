@@ -42,6 +42,7 @@ time_t mostRecentMainModification = 0;		// The most recent modification to any s
 
 
 bool justSPCsPlease = false;
+bool patchOnly = false;
 std::vector<std::string> textFilesToCompile;
 
 int main(int argc, char* argv[])
@@ -124,6 +125,12 @@ int main(int argc, char* argv[])
 			if (ROMName.size() != 0)
 				printError("Error: -norom cannot be used after a filepath has already been used. Input your text files /after/ the -norom option.", true);
 			justSPCsPlease = true;
+			patchOnly = false;
+		}
+		else if (arguments[i] == "-nospc")
+		{
+			patchOnly = true;
+			justSPCsPlease = false;
 		}
 		else if (ROMName.size() == 0 && arguments[i][0] != '-')
 		{
@@ -139,7 +146,20 @@ int main(int argc, char* argv[])
 				printf("Unknown argument \"%s\".", arguments[i].c_str());
 			}
 
-			puts("Options:\n\t-e: Turn off echo buffer checking.\n\t-c: Force off conversion from Addmusic 4.05 and AddmusicM\n\t-b: Do not attempt to save music data in bank 0x40 and above.\n\t-v: Turn verbosity on.  More information will be displayed using this.\n\t-a: Make free space finding more aggressive.\n\t-d: Turn off duplicate sample checking.\n\t-h: Turn off hex command validation.\n\t-p: Create a patch, but do not patch it to the ROM.\n\n\t-norom: Only generate SPC files, no ROM required.\t-?: Display this message.\n\n");
+			std::cout
+				<< "Options:" << std::endl
+				<< "\t-e: Turn off echo buffer checking." << std::endl
+				<< "\t-c: Force off conversion from Addmusic 4.05 and AddmusicM" << std::endl
+				<< "\t-b: Do not attempt to save music data in bank 0x40 and above." << std::endl
+				<< "\t-v: Turn verbosity on.  More information will be displayed using this." << std::endl
+				<< "\t-a: Make free space finding more aggressive." << std::endl
+				<< "\t-d: Turn off duplicate sample checking." << std::endl
+				<< "\t-h: Turn off hex command validation." << std::endl
+				<< "\t-p: Create a patch, but do not patch it to the ROM." << std::endl
+				<< "\t-?: Display this message.\n" << std::endl
+				<< "\t-norom: Only generate SPC files, no ROM required." << std::endl
+				<< "\t-nospc: Only ROM patch, not generate SPCs." << std::endl
+				;
 			
 			if (arguments[i] != "-?")
 			{
@@ -155,7 +175,7 @@ int main(int argc, char* argv[])
 		{
 			printf("Enter your ROM name: ");
 			std::getline(std::cin, ROMName.filePath);
-			puts("\n\n");
+			std::cout << "\n" << std::endl;
 		}
 
 		if (asar_init() == false)
@@ -235,7 +255,11 @@ int main(int argc, char* argv[])
 	compileMusic();
 	fixMusicPointers();
 
-	generateSPCs();
+	if(false == patchOnly)
+	{
+		generateSPCs();
+	}
+
 	if (visualizeSongs)
 		generatePNGs();
 	if (justSPCsPlease == false)

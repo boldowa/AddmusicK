@@ -27,7 +27,7 @@
 
 #define AMKVERSION 1
 #define AMKMINOR 0
-#define AMKREVISION 3
+#define AMKREVISION 5
 
 #define PARSER_VERSION 2			// Used to keep track of incompatible changes to the parser
 
