@@ -283,7 +283,7 @@ cmdE6:					; Second loop
 	mov   $01e0+x,a			; | Save the current song position into $01e0
 	mov   a,$31+x			; |
 	mov   $01e1+x,a			; /
-	mov   a,#$ff			; \ ?
+	mov   a,#$ff			; \ Set init loop code
 	mov   $01f0+x,a			; /
 	ret				;
 label2:					;
@@ -294,8 +294,8 @@ label2:					;
 	pop   a				;
 	ret				;
 label3:	
-	cmp   a,#$ff
-	beq   label4
+	cmp   a,#$ff			; is init code(#$ff)?
+	beq   label4			; then, jump init loop times
 	pop   a
 	mov   a,$01f0+x
 	dec   a
@@ -303,12 +303,12 @@ label3:
 	bra   label5
 label4:	
 	pop   a
-	mov   $01f0+x,a
+	mov   $01f0+x,a			; set loop times
 label5:	
-	mov   a,$01e0+x
-	mov   $30+x,a
-	mov   a,$01e1+x
-	mov   $31+x,a
+	mov   a,$01e0+x			;\
+	mov   $30+x,a			; | Loop address restore
+	mov   a,$01e1+x			; |
+	mov   $31+x,a			;/
 	ret
 }	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -646,16 +646,16 @@ SubC_table:
 	dw	SubC_2			; $02
 	dw	SubC_3			; $03
 	dw	$0000			; $04
-	dw	SubC_5
-	dw	SubC_6
-	dw	SubC_7
-	dw	SubC_8
-	dw	SubC_9
-	dw	cmdTremoloOff
-	dw	cmdPitchEnvOff
-	dw	cmdRemoteCmdResetAll
-	dw	cmdRemoteCmdResetKOn
-	dw	cmdRemoteCmdResetVar
+	dw	SubC_5			; $05
+	dw	SubC_6			; $06
+	dw	SubC_7			; $07
+	dw	SubC_8			; $08
+	dw	SubC_9			; $09
+	dw	cmdTremoloOff		; $0A
+	dw	cmdPitchEnvOff		; $0B
+	dw	cmdRemoteCmdResetAll	; $0C
+	dw	cmdRemoteCmdResetKOn	; $0D
+	dw	cmdRemoteCmdResetVar	; $0E
 
 SubC_0:
 	mov     a, $6e				; 
@@ -1093,8 +1093,10 @@ ClearRemoteCodeAddressesPre:
 ClearRemoteCodeAddresses:
 	mov	a, #$00
 cmdRemoteCmdResetAll:
-	mov	!remoteCodeTargetAddr2+1+x, a
-	mov	!remoteCodeTargetAddr2+x, a
+; Reset Key-ON type remote command
+	call	cmdRemoteCmdResetKOn
+
+; Reset Remote command 1 - ...
 cmdRemoteCmdResetVar:
 	mov	!remoteCodeTargetAddr+1+x, a
 	mov	!remoteCodeTargetAddr+x, a
@@ -1106,6 +1108,10 @@ cmdRemoteCmdResetVar:
 	mov	!runningRemoteCode, a
 	ret
 }
+
+;---------------------------------------
+; Reset Key-ON type Remote command
+;---------------------------------------
 cmdRemoteCmdResetKOn:
 {
 	mov	!remoteCodeTargetAddr2+1+x, a		; | Note start code; get the address back and store it where it belongs.
@@ -1113,9 +1119,59 @@ cmdRemoteCmdResetKOn:
 	ret
 }
 
-
+;---------------------------------------
+; Subroutine-break command
+;---------------------------------------
 cmdFD:
+{
+	mov	x, $46		; get ch index
+	mov	a, $c0+x	;\ is last loop?
+	cmp	a, #1		;/
+	bne	+
+	dec	$c0+x		;\
+	mov	a, $03e0+x	; | discard loop counter($c0)
+	mov	$30+x, a	; | and break subroutine.
+	mov	a, $03e1+x	; |
+	mov	$31+x, a	;/
++	ret
+}
+
+;---------------------------------------
+; Jump command
+;   * This command is written for
+;     async loop.
+;     (#option exloop)
+;
+;   Spec:
+;     $FE $XX $YY
+;     -> Jump (*block start* + $YYXX)
+;---------------------------------------
 cmdFE:
+{
+	call	GetCommandData		;\
+	mov	$16, a			; | Get jump address
+	call	GetCommandDataFast	; |
+	mov	$17, a			;/
+
+	mov	a, x			;\
+	mov	y, a			; |
+	inc	y			; | Get block start address
+	inc	y			; | to YA
+	mov	a, ($40)+y		; |
+	push	a			; |
+	inc	y			; |
+	mov	a, ($40)+y		; |
+	mov	y, a			; |
+	pop	a			;/
+
+	addw	ya, $16			;   Calculate absolute address
+
+	mov	$30+x, a		;\
+	mov	a, y			; | Store address
+	mov	$31+x, a		;/
+	ret
+}
+
 cmdFF:
 ;ret
 

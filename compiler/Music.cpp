@@ -3052,11 +3052,29 @@ void Music::pointersFirstPass()
 
 	//if (tempo == -1) tempo = 0x36;
 	unsigned int totalLength;
-	mainLength = -1;
+
+	if(!asyncLoop)
+	{
+		mainLength = 0xffffffff;
+	}
+	else
+	{
+		mainLength = 0;
+	}
 	for (i = 0; i < 8; i++)
 	if (channelLengths[i] != 0)
-		mainLength = std::min(mainLength, (unsigned int)channelLengths[i]);
-	if (mainLength == -1)
+	{
+		if (!asyncLoop)
+		{
+			mainLength = std::min(mainLength, (unsigned int)channelLengths[i]);
+		}
+		else
+		{
+			mainLength = std::max(mainLength, (unsigned int)channelLengths[i]);
+		}
+	}
+
+	if (mainLength == 0xffffffff || mainLength == 0)
 		error("This song doesn't seem to have any data.")
 
 		totalLength = mainLength;
