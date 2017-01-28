@@ -62,16 +62,6 @@ public:
 		return *this;
 	}
 
-	//operator const std::string() const
-	//{
-	//	return filePath;
-	//}
-
-	//operator std::string() const
-	//{
-	//	return filePath;
-	//}
-
 	operator const char *() const
 	{
 		return filePath.c_str();

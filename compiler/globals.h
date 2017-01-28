@@ -33,30 +33,16 @@
 
 #define DATA_VERSION 0				// Used to keep track of incompatible changes to any and all compiled data, either to the SNES or to the PC
 
-typedef unsigned char byte;
-//class ROM;
 class Music;
 class SoundEffect;
 class Sample;
 class File;
-class SampleGroup;
-
-//#include "ROM.h"
-#include "Music.h"
-#include "Sample.h"
-#include "SoundEffect.h"
-#include "SampleGroup.h"
-#include "File.h"
-#include "BankDefine.h"
-#include "File.h"
-#include "asardll.h"
+class BankDefine;
 
 
-//extern ROM rom;
 extern std::vector<byte> rom;
 
 extern Music musics[256];
-//extern Sample samples[256];
 extern std::vector<Sample> samples;
 extern SoundEffect *soundEffects[2];	// soundEffects[2][256];
 extern std::vector<BankDefine *> bankDefines;
@@ -88,7 +74,6 @@ extern int mainLoopPos;
 extern int SRCNTableCodePos;
 extern int programSize;
 extern int highestGlobalSong;
-//extern int totalSampleCount;
 extern int songCount;
 extern int songSampleListSize;
 
@@ -132,10 +117,6 @@ unsigned int getFileSize(const File &fileName);
 
 void removeFile(const File &fileName);
 
-//int getSampleIndex(const std::string &name);
-
-//void loadSample(const std::string &name, Sample *srcn);
-
 void insertValue(int value, int length, const std::string &find, std::string &str);
 
 int findFreeSpace(unsigned int size, int start, std::vector<byte> &ROM);	// Returns a position in the ROM with the specified amount of free space, starting at the specified position.  NOT using SNES addresses!  This function writes a RATS address at the position returned.
@@ -156,9 +137,6 @@ int getSample(const File &name, Music *music);
 void preprocess(std::string &str, const std::string &filename, int &version);
 
 int strToInt(const std::string &str);
-
-//#define max(a, b) (a > b) ? a : b
-//#define min(a, b) (a < b) ? a : b
 
 time_t getTimeStamp(const File &file);
 

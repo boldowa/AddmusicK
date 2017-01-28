@@ -64,9 +64,7 @@ public:
 
 	int index;
 
-	//byte mySamples[255];
 	std::vector<unsigned short> mySamples;
-	//int mySampleCount;
 	int echoBufferSize;
 
 	std::string statStr;
@@ -89,7 +87,6 @@ public:
 
 	int remoteDefinitionType;
 	bool inRemoteDefinition;
-	//int remoteDefinitionArg;
 
 	std::map<std::string, std::string> replacements;
 	std::vector<const std::pair<const std::string, std::string> *> sortedReplacements;
@@ -153,10 +150,7 @@ private:
 	void parseUndef();
 
 	void parseSPCInfo();
-
 	
-	//std::vector<std::string> defineStrings;
-
 	void printChannelDataNonVerbose(int);
 	void parseHFDHex();
 	void parseHFDInstrumentHack(int addr, int bytes);

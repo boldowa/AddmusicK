@@ -4,6 +4,7 @@
 //   author: Kipernal
 //------------------------------------------------
 #include "gstdafx.hpp"
+
 #include "globals.h"
 #include "SoundEffect.h"
 

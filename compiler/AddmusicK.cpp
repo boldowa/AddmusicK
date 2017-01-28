@@ -4,10 +4,15 @@
 //   author: Kipernal
 //------------------------------------------------
 #include "gstdafx.hpp"
+
 #include "globals.h"
+#include "asardll.h"
+#include "Sample.h"
+#include "BankDefine.h"
+#include "Music.h"
+#include "SoundEffect.h"
 #include "../AM405Remover/AM405Remover.h"
 //#include "lodepng.h"
-
 
 bool waitAtEnd = true;
 File ROMName;
@@ -40,7 +45,6 @@ bool recompileMain = true;
 
 time_t mostRecentMainModification = 0;		// The most recent modification to any sound effect file, any global song file, any list file, or any asm file
 
-
 bool justSPCsPlease = false;
 bool patchOnly = false;
 std::vector<std::string> textFilesToCompile;
@@ -67,7 +71,6 @@ int main(int argc, char* argv[])
 		{
 			// This is probably a catastrophicly bad idea on several levels, but I don't have the time do redo this entire section of code.
 			// AddmusicK 2.0: Now with actually good programming habits! (probably not)
-
 
 			std::string opsubstr;
 			if (optionsString.find('\n', osPos) == -1)
@@ -337,8 +340,6 @@ void displayNewUserMessage()
 
 void cleanROM()
 {
-	//tryToCleanAM4Data();
-	//tryToCleanAMMData();
 	tryToCleanSampleToolData();
 
 
@@ -448,9 +449,6 @@ void assembleSPCDriver()
 	if (verbose)
 		std::cout << "Compiling main SPC program, pass 1." << std::endl;
 
-	//execute("asar asm/main.asm asm/main.bin 2> temp.log > temp.txt");
-
-	//if (fileExists("temp.log"))
 	if (!asarCompileToBIN("asm/main.asm", "asm/main.bin"))
 		printError("asar reported an error while assembling asm/main.asm. Refer to temp.log for\ndetails.\n", true);
 
@@ -693,22 +691,6 @@ void loadSampleList()
 			}
 		}
 	}
-
-//	for (i = 0; (unsigned)i < bankDefines.size(); i++)
-//	{
-//		for (unsigned int j = 0; j < bankDefines[i]->samples.size(); j++)
-//		{
-//			for (int k = 0; k < samples.size(); k++)
-//			{
-//				if (samples[k].name == bankDefines[i]->samples[j]->c_str()) goto sampleExists;
-//				//if (strcmp(samples[k].name, bankDefines[i]->samples[j]->c_str()) == 0) goto sampleExists;
-//			}
-//
-//			loadSample(bankDefines[i]->samples[j]->c_str(), &samples[samples.size()]);
-//			samples[samples.size()].exists = true;
-//sampleExists:;
-//		}
-//	}
 }
 
 void loadSFXList()		// Very similar to loadMusicList, but with a few differences.
@@ -1019,8 +1001,6 @@ void compileGlobalData()
 	if (verbose)
 		std::cout << "Compiling main SPC program, pass 2." << std::endl;
 
-	//execute("asar asm/tempmain.asm asm/main.bin 2> temp.log > temp.txt");
-	//if (fileExists("temp.log")) 
 	if (!asarCompileToBIN("asm/tempmain.asm", "asm/main.bin"))
 		printError("asar reported an error while assembling asm/main.asm. Refer to temp.log for\ndetails.\n", true);
 
@@ -1050,13 +1030,6 @@ void compileMusic()
 		}
 	}
 
-	//int songSampleListSize = 0;
-
-	//for (int i = 0; i < songCount; i++)
-	//{
-	//	songSampleListSize += musics[i].mySampleCount + 1;
-	//}
-
 	std::stringstream songSampleList;
 	std::string s;
 	
@@ -1077,7 +1050,6 @@ void compileMusic()
 
 		if (i != songCount - 1 && (i & 0xF) != 0xF)
 			songSampleList << ", ";
-		//s = songSampleList.str();
 	}
 
 	songSampleList << "\n\n";
@@ -1124,8 +1096,6 @@ void fixMusicPointers()
 	std::stringstream incbins;
 
 	int songDataARAMPos = programSize + programPos + highestGlobalSong * 2 + 2;
-	//                    size + startPos + pointer to each global song + pointer to local song.
-	//int songPointerARAMPos = programSize + programPos;
 
 	bool addedLocalPtr = false;
 	
@@ -1337,11 +1307,6 @@ void fixMusicPointers()
 		if (verbose)
 			std::cout << "Compiling main SPC program, final pass." << std::endl;
 
-		//removeFile("asm/SNES/bin/main.bin");
-
-		//execute("asar asm/tempmain.asm asm/SNES/bin/main.bin 2> temp.log > temp.txt");
-
-		//if (fileExists("temp.log"))
 		if (!asarCompileToBIN("asm/tempmain.asm", "asm/SNES/bin/main.bin"))
 			printError("asar reported an error while assembling asm/main.asm. Refer to temp.log for\ndetails.\n", true);
 	}
@@ -1415,13 +1380,6 @@ void generateSPCs()
 	unsigned int i;
 
 	unsigned int localPos;
-	
-
-	//for (i = 0; i < programPos; i++) base[i] = 0;
-
-	//for (i = 0; i < programSize; i++)
-	//	base[i + programPos] = programData[i];
-
 	localPos = programData.size() + programPos;
 
 	std::vector<byte> SPC, SPCBase, DSPBase;
@@ -1471,16 +1429,6 @@ void generateSPCs()
 			if (mode == 2 && soundEffects[1][i].exists == false) continue;
 
 			if (mode == 0 && i <= highestGlobalSong) continue;		// Cannot generate SPCs for global songs as required samples, SRCN table, etc. cannot be determined.
-
-
-			//time_t spcTimeStamp = getTimeStamp((File)fname);
-
-			/*if (!forceSPCGeneration)
-				if (fileExists(fname))
-				if (getTimeStamp((File)("music/" + musics[i].name)) < spcTimeStamp)
-				if (getTimeStamp((File)"./samples") < spcTimeStamp)
-				if (recentMod < spcTimeStamp)
-				continue;*/
 
 			SPCsGenerated++;
 			int y = 2;					// Used to generate 2 SPCs for tracks with Yoshi drums.
@@ -1579,14 +1527,10 @@ void generateSPCs()
 					SPC[0x1F7] = i;				// Tell the SPC to play this SFX
 				}
 
-
-
-
 				char buffer[11];
 				time_t t = time(NULL);
 				strftime(buffer, 11, "%m/%d/%Y", localtime(&t));
 				strncpy((char *)SPC.data() + 0x9E, buffer, 10);
-
 
 				std::string pathlessSongName;
 				if (mode == 0)
@@ -1600,7 +1544,6 @@ void generateSPCs()
 				int extPos = pathlessSongName.find_last_of('.');
 				if (extPos != -1)
 					pathlessSongName = pathlessSongName.substr(0, extPos);
-
 
 				if (pathlessSongName.find('/') != -1)
 					pathlessSongName = pathlessSongName.substr(pathlessSongName.find_last_of('/') + 1);
@@ -1644,21 +1587,6 @@ void assembleSNESDriver2()
 		std::cout << "\nGenerating SNES driver...\n" << std::endl;
 
 	std::string patch;
-
-	//removeFile("asm/SNES/temppatch.sfc");
-	//openTextFile("asm/SNES/patch.asm", patch);
-
-	//writeTextFile("asm/SNES/temppatch.asm", patch);
-
-	//execute("asar asm/SNES/temppatch.asm 2> temp.log");
-	//if (fileExists("temp.log"))
-	//{
-	//	std::cout << "asar reported an error assembling patch.asm. Refer to temp.log for details." << std::endl;
-	//	quit(1);
-	//}
-
-	//std::vector<byte> patchBin;
-	//openFile("asm/SNES/temppatch.sfc", patchBin);
 
 	openTextFile("asm/SNES/patch.asm", patch);
 	
@@ -1792,8 +1720,6 @@ void assembleSNESDriver2()
 	patch += samplePtrStr.str();
 	patch += sampleLoopPtrStr.str();
 
-	//patch += "";
-
 	patch += musicIncbins.str();
 	patch += sampleIncbins.str();
 
@@ -1817,19 +1743,8 @@ void assembleSNESDriver2()
 	if (!doNotPatch)
 	{
 		
-		//execute("asar asm/SNES/temppatch.asm asm/SNES/temp.sfc 2> temp.log");
-		//if (fileExists("temp.log"))
 		if (!asarPatchToROM("asm/SNES/temppatch.asm", "asm/SNES/temp.sfc"))
 			printError("asar reported an error.  Refer to temp.log for details.", true);
-
-		//execute("asar asm/SNES/tweaks.asm asm/SNES/temp.sfc 2> temp.log");
-		//if (fileExists("temp.log"))
-		//	printError("asar reported an error.  Refer to temp.log for details.", true);
-
-		//execute("asar asm/SNES/NMIFix.asm asm/SNES/temp.sfc 2> temp.log");
-		//if (fileExists("temp.log"))
-		//	printError("asar reported an error.  Refer to temp.log for details.", true);
-
 
 		std::vector<byte> final;
 		final = romHeader;
@@ -1862,8 +1777,6 @@ void generateMSC()
 		{
 			text << hex2 << i << "\t" << 0 << "\t" << musics[i].title << "\n";
 			text << hex2 << i << "\t" << 1 << "\t" << musics[i].title << "\n";
-			//fprintf(fout, "%2X\t0\t%s\n", i, musics[i].title.c_str());
-			//fprintf(fout, "%2X\t1\t%s\n", i, musics[i].title.c_str());
 		}
 	}
 	writeTextFile(mscname, text.str());
@@ -1976,8 +1889,6 @@ void checkMainTimeStamps()			// Disabled for now, as this only works if the ROM 
 {						// It didn't save much time anyway...
 	recompileMain = true;
 	return;
-	
-
 
 	if (!fileExists("asm/SNES/bin/main.bin"))
 	{
@@ -2136,5 +2047,4 @@ void generatePNGs()
 #endif
 
 }
-
 

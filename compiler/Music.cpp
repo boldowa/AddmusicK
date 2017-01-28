@@ -4,10 +4,10 @@
 //   author: Kipernal
 //------------------------------------------------
 #include "gstdafx.hpp"
+
 #include "globals.h"
+#include "Sample.h"
 #include "Music.h"
-//#include "globals.h"
-//#include "Sample.h"
 
 //#include "Preprocessor.h"
 

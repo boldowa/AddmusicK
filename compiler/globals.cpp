@@ -5,18 +5,19 @@
 //------------------------------------------------
 #include "gstdafx.hpp"
 
-#include "File.h"
 #include "globals.h"
-//ROM rom;
+#include "Music.h"
+#include "Sample.h"
+#include "SoundEffect.h"
+#include "BankDefine.h"
+#include "asardll.h"
 std::vector<byte> rom;
 
 Music musics[256];
-//Sample samples[256];
 std::vector<Sample> samples;
 SoundEffect soundEffectsDF9[256];
 SoundEffect soundEffectsDFC[256];
 SoundEffect *soundEffects[2] = {soundEffectsDF9, soundEffectsDFC};
-//std::vector<SampleGroup> sampleGroups;
 std::vector<BankDefine *> bankDefines;
 std::map<File, int> sampleToIndex;
 
@@ -110,8 +111,6 @@ void printError(const std::string &error, bool isFatal, const std::string &fileN
 	errorCount++;
 	fputs((oss.str() + error).c_str(), stderr);
 	fputc('\n', stderr);
-	//puts((oss.str() + error).c_str());
-	//putchar('\n');
 	if (isFatal) quit(1);
 }
 
@@ -236,56 +235,6 @@ void insertValue(int value, int length, const std::string &find, std::string &st
 	std::string tempStr = ss.str();
 	str.replace(pos+1, length, tempStr);
 }
-
-//int getSampleIndex(const std::string &name)
-//{
-//	for (int i = 0; i < 256; i++)
-//		if (samples[i].exists)
-//			if (name == samples[i].name) 
-//				return i;
-//
-//	return -1;
-//}
-
-//void loadSample(const std::string &name, Sample *srcn)
-//{
-//	std::vector<byte> temp;
-//
-//
-//	//unsigned char *temp;
-//	openFile(std::string("samples/") + name, temp);
-//	
-//	srcn->name = name; //= (char *)calloc(strlen(name) + 1, 1);
-//	//if (srcn->name == NULL) printError(OutOfMemory, true);
-//	//strncpy(srcn->name, name, strlen(name));
-//
-//	if ((temp.size()) % 9 == 0) 
-//	{
-//		//srcn->data = temp;
-//		srcn->data = temp;
-//		srcn->size = temp.size();
-//		//srcn->data = srcn;
-//		for (int k = 0; (unsigned)k < temp.size(); k+=9)
-//		{
-//			if ((srcn->data[k] & 0x02) != 0x02) 
-//				srcn->loopPoint = k; 
-//			else 
-//				break;
-//		}
-//	}
-//	else 
-//	{
-//		srcn->size = temp.size() - 2;
-//		srcn->loopPoint = temp[1] << 8 | temp[0];
-//		srcn->data = temp;
-//		srcn->data.erase(srcn->data.begin(), srcn->data.begin() + 2);
-//		//srcn->data = alloc(dataSize - 2);
-//		//memcpy(srcn->data, temp + 2, dataSize - 2);
-//		//
-//	}
-//
-//	srcn->exists = true;
-//}
 
 int findFreeSpace(unsigned int size, int start, std::vector<byte> &ROM)
 {
@@ -449,14 +398,19 @@ void addSample(const std::vector<byte> &sample, const std::string &name, Music *
 			newSample.loopPoint = loopPoint;
 		}
 	}
+
+	//--------------------------------------
+	// set sample info
+	//--------------------------------------
 	newSample.exists = true;
 	newSample.name = name;
+	newSample.setMD5sum();
 
 	if (dupCheck)
 	{
 		for (int i = 0; i < samples.size(); i++)
 		{
-			if (samples[i].name == newSample.name)
+			if (0 == samples[i].cmpMD5sum(newSample))
 			{
 				music->mySamples.push_back(i);
 				return;						// Don't add two of the same sample.
@@ -529,7 +483,7 @@ void addSampleBank(const File &fileName, Music *music)
 	if (bankFile.size() != 0x8000)
 		printError("The specified bank file was an illegal size.", true);
 	bankFile.erase(bankFile.begin(), bankFile.begin() + 12);
-	//Sample bankSamples[0x40];
+
 	Sample tempSample;
 	int currentSample = 0;
 	for (currentSample = 0; currentSample < 0x40; currentSample++)
@@ -600,8 +554,6 @@ int getSample(const File &name, Music *music)
 		if (boost::filesystem::equivalent(p1, p2))
 			return it->second;
 
-		//if ((std::string)it->first == (std::string)ftemp)
-		//	return it->second;
 		it++;
 	}
 
