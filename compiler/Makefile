@@ -80,11 +80,11 @@ LDFLAGS		+= -Wl,--gc-sections,--discard-all
 _BOOST_LIB	= boost_filesystem boost_system
 ifdef WIN32
 BOOST_LIB	:= $(addsuffix -mt,$(_BOOST_LIB))
-LDLIBS		+= -Wl,-dn,-lpthread $(foreach lib,$(BOOST_LIB),-Wl,-l$(lib))
+LDLIBS		+= -Wl,-dn,-lpthread,-lpng,-lz $(foreach lib,$(BOOST_LIB),-Wl,-l$(lib))
 else
 BOOST_LIB	:= $(_BOOST_LIB)
 LDLIBS		+= -lasar -ldl
-LDLIBS		+= -Wl,-dy $(foreach lib,$(BOOST_LIB),-Wl,-l$(lib))
+LDLIBS		+= -Wl,-dy,-lpng,-lz $(foreach lib,$(BOOST_LIB),-Wl,-l$(lib))
 endif
 LDLIBS		+= -Wl,-dy,-lam4remover
 

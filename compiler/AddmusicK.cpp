@@ -12,7 +12,6 @@
 #include "Music.h"
 #include "SoundEffect.h"
 #include "../AM405Remover/AM405Remover.h"
-//#include "lodepng.h"
 
 bool waitAtEnd = true;
 File ROMName;
@@ -1940,9 +1939,6 @@ recompile:
 
 void generatePNGs()
 {
-	std::cout << "generatePngs(): generatePNGs isn't supported." << std::endl;
-	return;
-#if 0
 	for (auto &current : musics)
 	{
 		if (current.index <= highestGlobalSong) continue;
@@ -2038,13 +2034,24 @@ void generatePNGs()
 			}
 		}
 
-		auto path = current.pathlessSongName;
+		// png_image struct init
+		png_image png;
+		memset(&png, 0, sizeof(png_image));
+		png.version = PNG_IMAGE_VERSION;
+
+		// set png info
+		png.width = width;
+		png.height = height;
+		png.format = PNG_FORMAT_RGBA;
+
+		uint32_t stride = PNG_IMAGE_ROW_STRIDE(png);
+
+		std::string path = current.pathlessSongName;
 		path = "Visualizations/" + path + ".png";
-		lodepng::encode(path, bitmap, width, height);
+		png_image_write_to_file(&png, path.c_str(), 0, &bitmap[0], stride, NULL);
 
 
 	}
-#endif
 
 }
 
