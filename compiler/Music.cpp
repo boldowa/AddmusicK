@@ -575,24 +575,70 @@ void Music::parseLDirective()
 }
 void Music::parseGlobalVolumeCommand()
 {
-	pos++;
-	i = getInt();
-	if (i == -1) error("Error parsing global volume (\"w\") command.")
-	if (i < 0 || i > 255) error("Illegal value for global volume (\"w\") command.")
+	int duration = -1;
+	int volume = -1;
 
-		append(0xE0);
-	append(i);
+	pos++;
+	volume = getInt();
+	if (volume == -1) error("Error parsing global volume (\"w\") command.")
+	skipSpaces;
+
+	if (text[pos] == ',')
+	{
+		duration = volume;
+
+		pos++;
+		skipSpaces;
+		volume = getInt();
+		if (volume == -1) error("Error parsing global volume (\"w\") command.")
+	}
+	if (volume < 0 || volume > 255) error("Illegal value for global volume (\"w\") command.")
+
+	if (0 <= duration)
+	{
+		if (duration < 0 || duration > 255) error("Illegal value for global volume (\"w\") command.")
+		append(0xE1);
+		append(duration);
+		append(volume);
+		return;
+	}
+
+	append(0xE0);
+	append(volume);
 }
 void Music::parseVolumeCommand()
 {
+	int duration = -1;
+	int volume = -1;
+
 	pos++;
-	i = getInt();
+	volume = getInt();
+	skipSpaces;
+	if (volume == -1) error("Error parsing volume (\"v\") command.")
 
-	if (i == -1) error("Error parsing volume (\"v\") command.")
-	if (i < 0 || i > 255) error("Illegal value for global volume (\"v\") command.")
+	if (text[pos] == ',')
+	{
+		duration = volume;
 
-		append(0xE7);
-	append(i);
+		pos++;
+		skipSpaces;
+		volume = getInt();
+		if (volume == -1) error("Error parsing volume (\"v\") command.")
+	}
+
+	if (volume < 0 || volume > 255) error("Illegal value for global volume (\"v\") command.")
+
+	if (0 <= duration)
+	{
+		if (duration < 0 || duration > 255) error("Illegal value for global volume (\"w\") command.")
+		append(0xE8);
+		append(duration);
+		append(volume);
+		return;
+	}
+
+	append(0xE7);
+	append(volume);
 }
 void Music::parseQuantizationCommand()
 {
@@ -680,32 +726,54 @@ void Music::parseT()
 }
 void Music::parseTempoCommand()
 {
-	i = getInt();
+	int duration = -1;
+	int ltempo = -1;
 
-	if (i == -1) error("Error parsing tempo (\"t\") command.")
-	if (i <= 0 || i > 255) error("Illegal value for tempo (\"t\") command.")
+	ltempo = getInt();
+	skipSpaces;
+	if (ltempo == -1) error("Error parsing tempo (\"t\") command.")
 
-	i = divideByTempoRatio(i, false);
+	if (ltempo <= 0 || ltempo > 255) error("Illegal value for tempo (\"t\") command.")
 
-	if (i == 0)
+	if (text[pos] == ',')
+	{
+		duration = ltempo;
+
+		pos++;
+		skipSpaces;
+		ltempo = getInt();
+		if (ltempo == -1) error("Error parsing tempo (\"t\") command.")
+	}
+
+	tempo = divideByTempoRatio(ltempo, false);
+
+	if (ltempo == 0)
 		error("Tempo has been zeroed out by #halvetempo")
 
-		tempo = i;
-	tempoDefined = true;
+	tempo = ltempo;
 
-	if (channel == 8 || inE6Loop)								// Not even going to try to figure out tempo changes inside loops.  Maybe in the future.
+	if(0 > duration)
 	{
-		guessLength = false;
-	}
-	else
-	{
-		tempoChanges.push_back(std::pair<double, int>(channelLengths[channel], tempo));
+		tempoDefined = true;
+
+		if (channel == 8 || inE6Loop)								// Not even going to try to figure out tempo changes inside loops.  Maybe in the future.
+		{
+			guessLength = false;
+		}
+		else
+		{
+			tempoChanges.push_back(std::pair<double, int>(channelLengths[channel], tempo));
+		}
+
+		append(0xE2);
+		append(tempo);
+		return;
 	}
 
-
-	append(0xE2);
+	guessLength = false;		// NOPE.  Nope nope nope nope nope nope nope nope nope nope.
+	append(0xE3);
+	append(duration);
 	append(tempo);
-
 }
 void Music::parseTransposeDirective()
 {
@@ -907,14 +975,58 @@ void Music::parseLabelLoopCommand()
 
 		if (channelDefined == true)						// A channel's been defined, we're parsing a remote 
 		{
-			//bool negative = false;
+			if ('!' == text[pos])
+			{
+				//--------------------------------------
+				// Reset RemoteCommand
+				//--------------------------------------
+				if (targetAMKVersion < 3)
+				{
+					error("(!!) - " AMK3REQMSG)
+				}
+
+				try
+				{
+					i = getIntWithNegative();
+				}
+				catch (...)
+				{
+					error("Error parsing remote code reset. Remember that remote code cannot be defined within a channel.");
+				}
+				skipSpaces;
+
+				if (text[pos] != ')')
+					error("Error parsing remote reset.")
+				pos++;
+
+				switch(i)
+				{
+					case 0:
+						append(0xF4);
+						append(0x0C);
+						break;
+					case -1:
+						append(0xF4);
+						append(0x0D);
+						break;
+					default:
+						append(0xF4);
+						append(0x0E);
+						break;
+				}
+				return;
+			}
+
+			//--------------------------------------
+			// Call RemoteCaommand
+			//--------------------------------------
 			i = getInt();
 			if (i == -1) error("Error parsing remote code setup.")
 				skipSpaces;
 			if (text[pos] != ',') error("Error parsing code setup.")
 				pos++;
 			skipSpaces;
-			//if (text[pos] == '-') negative = true, pos++;
+
 			try
 			{
 				j = getIntWithNegative();
@@ -923,8 +1035,8 @@ void Music::parseLabelLoopCommand()
 			{
 				error("Error parsing remote code setup. Remember that remote code cannot be defined within a channel.");
 			}
-			//if (negative) j = -j;
 			skipSpaces;
+
 			int k = 0;
 			if (j == 1 || j == 2)
 			{
@@ -957,6 +1069,18 @@ void Music::parseLabelLoopCommand()
 			{
 				error("Remote code cannot be defined within a channel.")
 			}
+
+			//--------------------------------------
+			// If RemoteCommand-reset, 
+			// use subcmd for optimize seq.
+			//--------------------------------------
+			if(0 == j)
+			{
+				append(0xF4);
+				append(0x0C);
+				return;
+			}
+
 			append(0xFC);
 			loopLocations[channel].push_back(data[channel].size());
 
@@ -1215,7 +1339,15 @@ void Music::parseVibratoCommand()
 	t1 = getInt();
 	if (t1 == -1) error("Error parsing vibrato command.");
 	skipSpaces;
-	if (text[pos] != ',') error("Error parsing vibrato command.");
+	if (text[pos] != ',')
+	{
+		if (0 == t1)
+		{
+			append(0xDF);
+			return;
+		}
+		error("Error parsing vibrato command.");
+	}
 	pos++;
 	skipSpaces;
 	t2 = getInt();
@@ -2974,7 +3106,7 @@ void Music::pointersFirstPass()
 		pos += data[ch].size();
 	}
 
-	int add = ((hasIntro & !asyncLoop) ? 2 : 0) + ((doesntLoop | asyncLoop) ? 0 : 2) + 4;
+	int add = ((hasIntro && !asyncLoop) ? 2 : 0) + ((doesntLoop || asyncLoop) ? 0 : 2) + 4;
 
 	for (i = 0; i < instrumentData.size(); i++)
 		allPointersAndInstrs[i + add] = instrumentData[i];
@@ -3026,7 +3158,7 @@ void Music::pointersFirstPass()
 	allPointersAndInstrs[14 + add] = data[7].size() != 0 ? (phrasePointers[7][0] + spaceForPointersAndInstrs) & 0xFF : 0xFB;
 	allPointersAndInstrs[15 + add] = data[7].size() != 0 ? (phrasePointers[7][0] + spaceForPointersAndInstrs) >> 8 : 0xFF;
 
-	if (hasIntro & !asyncLoop)
+	if (hasIntro && !asyncLoop)
 	{
 		allPointersAndInstrs[16 + add] = data[0].size() != 0 ? (phrasePointers[0][1] + spaceForPointersAndInstrs) & 0xFF : 0xFB;
 		allPointersAndInstrs[17 + add] = data[0].size() != 0 ? (phrasePointers[0][1] + spaceForPointersAndInstrs) >> 8 : 0xFF;
@@ -3525,7 +3657,8 @@ void Music::addNoteLength(double ticks)
 
 int Music::divideByTempoRatio(int value, bool fractionIsError)
 {
-	return value;
+	return value;		// boldowa's comment: Why???
+
 	int temp = value / tempoRatio;
 	if (temp * tempoRatio != value)
 	{
