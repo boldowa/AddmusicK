@@ -30,6 +30,8 @@ if (text[pos] == '\n')			\
 	printError(str, true, name, line);	\
 	return; }				\
 
+#define AMK3REQMSG "This command require amk version 3 (#amk 3)."
+
 static unsigned int pos = 0;
 static int line, channel, prevChannel, octave, prevNoteLength, defaultNoteLength;
 static int instrument[9];
@@ -42,6 +44,7 @@ static int q[9];
 static bool updateQ[9];
 static bool hasIntro;
 static bool doesntLoop;
+static bool asyncLoop;
 static bool triplet;
 static bool inPitchSlide;
 static bool passedIntro[8];
@@ -78,6 +81,8 @@ static int loopNestLevel;		// How deep we're "loop nested".
 // If this is 1 and we're in a normal loop, then normal loops are disallowed and $E6 loops are allowed.
 // If this is 1 and we're in an $E6 loop, then $E6 loops are disallowed and normal loops are allowed.
 // If this is 2, then no new loops are allowed.
+
+static bool existsSubBreak;
 
 //static unsigned int lengths[8];		// How long each channel is.
 
@@ -200,6 +205,7 @@ void Music::init()
 		loopLengths[i] = 0;
 
 	inE6Loop = false;
+	existsSubBreak = false;
 	seconds = 0;
 
 
@@ -242,6 +248,7 @@ void Music::init()
 
 	hasIntro = false;
 	doesntLoop = false;
+	asyncLoop = false;
 	triplet = false;
 	inPitchSlide = false;
 
@@ -338,7 +345,7 @@ void Music::init()
 			return;
 		}
 
-#if PARSER_VERSION != 2
+#if PARSER_VERSION != 3
 #error You forgot to update the #amk syntax.  Aren't you glad you at least remembered to put in this warning?
 #endif
 		/*			targetAMKVersion = 0;
@@ -451,6 +458,7 @@ void Music::compile()
 		case '\"':parseReplacementDirective();	break;
 		case '\n': pos++; line++;		break;
 		case '|': pos++; hexLeft = 0;		break;
+		case ':': parseSubroutineBreak();	break;
 		case 'c': case 'd': case 'e': case 'f': case 'g': case 'a': case 'b': case 'r': case '^':
 			parseNote();			break;
 		case ';':
@@ -655,11 +663,11 @@ void Music::parseIntroDirective()
 		}
 	}
 
-	hasIntro = true;
 	pos++;
+
+	hasIntro = true;
 	phrasePointers[channel][1] = data[channel].size();
 	prevNoteLength = -1;
-	hasIntro = true;
 	introLength = channelLengths[channel];
 }
 void Music::parseT()
@@ -1175,6 +1183,30 @@ void Music::parseStarLoopCommand()
 	append(prevLoop & 0xFF);
 	append(prevLoop >> 8);
 	append(i);
+
+	existsSubBreak = false;
+}
+
+void Music::parseSubroutineBreak()
+{
+	pos++;
+
+	if (targetAMKVersion < 3)
+		error("cmd \":\" - " AMK3REQMSG);
+
+	if (channel != 8)
+	{
+		error("Loop break found outside of a loop.");
+	}
+
+	if (true == existsSubBreak)
+	{
+		error("Loop break command is already exists in this loop.");
+	}
+
+	append(0xfd);
+	existsSubBreak = true;
+
 }
 void Music::parseVibratoCommand()
 {
@@ -2282,6 +2314,15 @@ void Music::parseOptionDirective()
 		if (tempoRatio < 0)
 			error("#halvetempo has been used too many times...what are you even doing?")
 	}
+	else if (strnicmp(text.c_str() + pos, "exloop", 6) == 0 && isspace(text[pos + 6]))
+	{
+		pos += 6;
+
+		if (targetAMKVersion < 3)
+			error("#option exloop - " AMK3REQMSG);
+
+		asyncLoop = true;
+	}
 	else
 	{
 		error("#option directive missing its first argument")
@@ -2871,16 +2912,6 @@ void Music::pointersFirstPass()
 		}
 	}
 
-	for (int z = 0; z < 8; z++)
-	{
-		if (data[z].size() != 0)
-		{
-			channel = z;
-			append(0);
-		}
-	}
-
-
 
 	if (mySamples.size() == 0)	// If no sample groups were provided...
 	{
@@ -2907,58 +2938,51 @@ void Music::pointersFirstPass()
 			mySamples[i] = emptySampleIndex;
 	}
 
-	pos = 0;	// Pos no longer means text file position.
-
-	if (data[0].size()) phrasePointers[0][0] = 0;
-	pos = data[0].size();
-
-	if (data[1].size()) phrasePointers[1][0] = pos;
-	pos += data[1].size();
-
-	if (data[2].size()) phrasePointers[2][0] = pos;
-	pos += data[2].size();
-
-	if (data[3].size()) phrasePointers[3][0] = pos;
-	pos += data[3].size();
-
-	if (data[4].size()) phrasePointers[4][0] = pos;
-	pos += data[4].size();
-
-	if (data[5].size()) phrasePointers[5][0] = pos;
-	pos += data[5].size();
-
-	if (data[6].size()) phrasePointers[6][0] = pos;
-	pos += data[6].size();
-
-	if (data[7].size()) phrasePointers[7][0] = pos;
-
-	for (i = 0; i < 8; i++)
-		phrasePointers[i][1] += phrasePointers[i][0];
-
 	playOnce = doesntLoop;
 
 	spaceForPointersAndInstrs = 20;
 
-	if (hasIntro)
+	if (hasIntro && !asyncLoop)
 		spaceForPointersAndInstrs += 18;
-	if (!doesntLoop)
+	if (!doesntLoop || asyncLoop)
 		spaceForPointersAndInstrs += 2;
 
 	spaceForPointersAndInstrs += instrumentData.size();
 
-	allPointersAndInstrs.resize(spaceForPointersAndInstrs);// = alloc(spaceForPointersAndInstrs);
-	//for (i = 0; i < spaceForPointers; i++) allPointers[i] = 0x55;
+	allPointersAndInstrs.resize(spaceForPointersAndInstrs);
 
-	int add = (hasIntro ? 2 : 0) + (doesntLoop ? 0 : 2) + 4;
+	pos = 0;	// Pos no longer means text file position.
+	for (int ch = 0; ch < 8; ch++)
+	{
+		if (data[ch].size())
+		{
+			phrasePointers[ch][0] = pos;
+			if (!asyncLoop)
+			{
+				channel = ch;
+				append(0);
+			}
+			else
+			{
+				channel = ch;
+				append(0xfe);
+				append(phrasePointers[ch][1] & 0xff);
+				append(phrasePointers[ch][1] >> 8);
+			}
+		}
+		phrasePointers[ch][1] += pos;
+		pos += data[ch].size();
+	}
 
-	//memcpy(allPointersAndInstrs.data() + add, instrumentData.base, instrumentData.size());
+	int add = ((hasIntro & !asyncLoop) ? 2 : 0) + ((doesntLoop | asyncLoop) ? 0 : 2) + 4;
+
 	for (i = 0; i < instrumentData.size(); i++)
 		allPointersAndInstrs[i + add] = instrumentData[i];
 
 	allPointersAndInstrs[0] = (add + instrumentData.size()) & 0xFF;
 	allPointersAndInstrs[1] = ((add + instrumentData.size()) >> 8) & 0xFF;
 
-	if (doesntLoop)
+	if (doesntLoop || asyncLoop)
 	{
 		allPointersAndInstrs[add - 2] = 0xFF;	// Will be re-evaluated to 0000 when the pointers are adjusted later.
 		allPointersAndInstrs[add - 1] = 0xFF;
@@ -2978,7 +3002,7 @@ void Music::pointersFirstPass()
 			allPointersAndInstrs[add - 1] = 0xFF;
 		}
 	}
-	if (hasIntro)
+	if (hasIntro && !asyncLoop)
 	{
 		allPointersAndInstrs[2] = (add + instrumentData.size() + 16) & 0xFF;
 		allPointersAndInstrs[3] = (add + instrumentData.size() + 16) >> 8;
@@ -3002,7 +3026,7 @@ void Music::pointersFirstPass()
 	allPointersAndInstrs[14 + add] = data[7].size() != 0 ? (phrasePointers[7][0] + spaceForPointersAndInstrs) & 0xFF : 0xFB;
 	allPointersAndInstrs[15 + add] = data[7].size() != 0 ? (phrasePointers[7][0] + spaceForPointersAndInstrs) >> 8 : 0xFF;
 
-	if (hasIntro)
+	if (hasIntro & !asyncLoop)
 	{
 		allPointersAndInstrs[16 + add] = data[0].size() != 0 ? (phrasePointers[0][1] + spaceForPointersAndInstrs) & 0xFF : 0xFB;
 		allPointersAndInstrs[17 + add] = data[0].size() != 0 ? (phrasePointers[0][1] + spaceForPointersAndInstrs) >> 8 : 0xFF;

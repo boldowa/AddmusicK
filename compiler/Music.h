@@ -120,6 +120,7 @@ private:
 	void parseLoopCommand();
 	void parseLoopEndCommand();
 	void parseStarLoopCommand();
+	void parseSubroutineBreak();
 	void parseVibratoCommand();
 	void parseTripletOpenDirective();
 	void parseTripletCloseDirective();
