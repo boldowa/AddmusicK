@@ -410,7 +410,7 @@ void addSample(const std::vector<byte> &sample, const std::string &name, Music *
 	{
 		for (int i = 0; i < samples.size(); i++)
 		{
-			if (0 == samples[i].cmpMD5sum(newSample))
+			if (samples[i].name == newSample.name)
 			{
 				music->mySamples.push_back(i);
 				return;						// Don't add two of the same sample.
@@ -419,7 +419,7 @@ void addSample(const std::vector<byte> &sample, const std::string &name, Music *
 
 		for (int i = 0; i < samples.size(); i++)
 		{
-			if (samples[i].data == newSample.data)
+			if (0 == samples[i].cmpMD5sum(newSample))
 			{
 				sampleToIndex[name] = i;
 				music->mySamples.push_back(i);
@@ -474,9 +474,6 @@ void addSampleBank(const File &fileName, Music *music)
 		actualPath = absoluteDir;
 	else
 		printError("Could not find sample bank " + (std::string)fileName, true, music->name);
-
-
-
 
 	openFile(actualPath, bankFile);
 
@@ -541,8 +538,6 @@ int getSample(const File &name, Music *music)
 	else
 		printError("Could not find sample " + (std::string)name, true, music->name);
 
-
-
 	File ftemp = actualPath;
 	std::map<File, int>::const_iterator it = sampleToIndex.begin();
 
@@ -556,7 +551,6 @@ int getSample(const File &name, Music *music)
 
 		it++;
 	}
-
 
 	return -1;
 }

@@ -102,7 +102,7 @@ ifeq ($(buildtype),release)
   CFLAGS += -O2
   LDFLAGS  += -s
 else ifeq ($(buildtype),debug)
-  CXXFLAGS += -DDEBUG -O0 -g -Wall
+  CXXFLAGS += -DDEBUG -D_DEBUG -O0 -g -Wall
 else
   $(error buildtype is illegal.)
 endif

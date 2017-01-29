@@ -160,9 +160,10 @@ int main(int argc, char* argv[])
 				<< "\t-d: Turn off duplicate sample checking." << std::endl
 				<< "\t-h: Turn off hex command validation." << std::endl
 				<< "\t-p: Create a patch, but do not patch it to the ROM." << std::endl
-				<< "\t-?: Display this message.\n" << std::endl
+				<< "\t-?: Display this message." << std::endl
 				<< "\t-norom: Only generate SPC files, no ROM required." << std::endl
-				<< "\t-nospc: Only ROM patch, not generate SPCs." << std::endl
+				<< "\t-visualize: generate spc usage map." << std::endl
+				<< "\t-nospc: Only ROM patch, not generate SPCs.\n" << std::endl
 				;
 			
 			if (arguments[i] != "-?")

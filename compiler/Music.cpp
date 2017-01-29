@@ -9,9 +9,6 @@
 #include "Sample.h"
 #include "Music.h"
 
-//#include "Preprocessor.h"
-
-
 #define skipSpaces				\
 while (pos < text.size() && isspace(text[pos]))	\
 {						\
@@ -314,12 +311,6 @@ void Music::init()
 
 	text += "                       ";
 
-	//Preprocessor preprocessor;
-
-	//preprocessor.run(text, name);
-
-
-
 	if (v == -1)
 	{
 		songTargetProgram = 1;
@@ -588,6 +579,9 @@ void Music::parseGlobalVolumeCommand()
 
 	if (text[pos] == ',')
 	{
+		if (targetAMKVersion < 3)
+			error("cmd \"vXX,YY\" - " AMK3REQMSG);
+
 		duration = volume;
 
 		pos++;
@@ -621,6 +615,9 @@ void Music::parseVolumeCommand()
 
 	if (text[pos] == ',')
 	{
+		if (targetAMKVersion < 3)
+			error("cmd \"wXX,YY\" - " AMK3REQMSG);
+
 		duration = volume;
 
 		pos++;
@@ -740,6 +737,9 @@ void Music::parseTempoCommand()
 
 	if (text[pos] == ',')
 	{
+		if (targetAMKVersion < 3)
+			error("cmd \"tXX,YY\" - " AMK3REQMSG);
+
 		duration = ltempo;
 
 		pos++;
@@ -1346,6 +1346,9 @@ void Music::parseVibratoCommand()
 	{
 		if (0 == t1)
 		{
+			if (targetAMKVersion < 3)
+				error("cmd \"p0\" - " AMK3REQMSG);
+
 			append(0xDF);
 			return;
 		}
@@ -2294,17 +2297,6 @@ void Music::parseNote()
 
 	} while (text[pos] == '^' || (i == 0xC7 && text[pos] == 'r'));
 
-	/*if (normalLoopInsideE6Loop)
-	tempLoopLength += j;
-	else if (normalLoopInsideE6Loop)
-	e6LoopLength += j;
-	else if (::inE6Loop)
-	e6LoopLength += j;
-	else if (channel == 8)
-	tempLoopLength += j;
-	else
-	lengths[channel] += j;*/
-
 	j = divideByTempoRatio(j, true);
 
 	addNoteLength(j);
@@ -2354,13 +2346,7 @@ void Music::parseNote()
 void Music::parseHDirective()
 {
 	pos++;
-	//bool negative = false;
 
-	//if (text[pos] == '-') 
-	//{
-	//	negative = true;
-	//	pos++;
-	//}
 	try
 	{
 		i = getIntWithNegative();
@@ -2369,9 +2355,7 @@ void Music::parseHDirective()
 	{
 		error("Error parsing h transpose directive.");
 	}
-	//if (negative) i = -i;
-	//transposeMap[instrument[channel]] = -i;
-	//htranspose[instrument[channel]] = true;
+
 	hTranspose = i;
 	usingHTranspose = true;
 }
@@ -2599,8 +2583,6 @@ void Music::parseReplacementDirective()
 	}
 
 	replacements[find] = replacement;
-
-	//std::sort(replacements.begin(), replacements.end(), sortFunction);
 }
 
 void Music::parseInstrumentDefinitions()
@@ -2703,50 +2685,6 @@ void Music::parseInstrumentDefinitions()
 	}
 	pos++;
 	return;
-
-	/*	//unsigned char temp;
-	int count = 0;
-
-	while (pos < text.length())
-	{
-	switch (state)
-	{
-	case lookingForOpenBrace:
-	if (isspace(text[pos])) break;
-	if (text[pos] != '{')
-	error("Could not find opening curly brace in instrument definition.");
-	state = lookingForDollarSign;
-	break;
-	case lookingForDollarSign:
-	if (text[pos] == '\n')
-	count = 0;
-	if (isspace(text[pos])) break;
-	if (text[pos] == '$')
-	{
-	if (count == 6) error("Invalid number of arguments for instrument.  Total number of bytes must be a multiple of 6.");
-	state = gettingValue;
-	break;
-	}
-	if (text[pos] == '}')
-	{
-	if (count != 0)
-	error("Invalid number of arguments for instrument.  Total number of bytes must be a multiple of 6.");
-	pos++;
-	return;
-	}
-
-	error("Error parsing instrument definition.");
-	break;
-	case gettingValue:
-	int val = getHex();
-	if (val == -1 || val > 255) error("Error parsing instrument definition.");
-	instrumentData.push_back(val);
-	state = lookingForDollarSign;
-	count++;
-	break;
-	}
-	pos++;
-	}*/
 }
 
 void Music::parseSampleDefinitions()
@@ -2951,18 +2889,11 @@ int Music::getPitch(int i)
 	if (text[pos] == '+') { i++; pos++; }
 	else if (text[pos] == '-') { i--; pos++; }
 
-	/*if (i < 0x80)
-	return -1;
-	if (i >= 0xC6)
-	return -2;*/
-
 	return i;
 }
 
 int Music::getNoteLength(int i)
 {
-	//bool still = true;
-
 	if (i == -1 && text[pos] == '=')
 	{
 		pos++;
@@ -2972,11 +2903,8 @@ int Music::getNoteLength(int i)
 			printError("Error parsing note", false, name, line);
 		}
 		return i;
-		//if (i < 1) still = false; else return i;
 	}
 
-	//if (still)
-	//{
 	if (i < 1 || i > 192) i = defaultNoteLength;
 	i = 192 / i;
 
@@ -3273,8 +3201,7 @@ void Music::pointersFirstPass()
 		std::cout << name << " total size: 0x" << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << totalSize << " bytes" << std::dec << std::endl;
 	else
 		printChannelDataNonVerbose(totalSize);
-	//for (int z = 0; z <= 8; z++)
-	//{
+
 	if (verbose)
 	{
 		printf("\t#0: 0x%03X #1: 0x%03X #2: 0x%03X #3: 0x%03X Ptrs+Instrs: 0x%03X\n\t#4: 0x%03X #5: 0x%03X #6: 0x%03X #7: 0x%03X Loop:        0x%03X \n", (unsigned int)data[0].size(), (unsigned int)data[1].size(), (unsigned int)data[2].size(), (unsigned int)data[3].size(), spaceForPointersAndInstrs, (unsigned int)data[4].size(), (unsigned int)data[5].size(), (unsigned int)data[6].size(), (unsigned int)data[7].size(), (unsigned int)data[8].size());

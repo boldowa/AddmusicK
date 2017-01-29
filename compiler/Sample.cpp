@@ -17,6 +17,7 @@ Sample::Sample(void)
 	  exists(false),
 	  important(true)
 {
+	memset(this->md5digest, 0, sizeof(byte)*16);
 }
 
 //--------------------------------------
@@ -30,8 +31,8 @@ void Sample::setMD5sum()
 	MD5Init(&context);
 
 	// Calculate checksum
-	MD5Update(&context, reinterpret_cast<byte *>(&loopPoint), sizeof(unsigned short));	// loop point
-	MD5Update(&context, &data[0], data.size());			// BRR data
+	MD5Update(&context, reinterpret_cast<byte *>(&this->loopPoint), sizeof(unsigned short));	// loop point
+	MD5Update(&context, &this->data[0], this->data.size());						// BRR data
 
 	// Finalize
 	MD5Final(md5digest, &context);
