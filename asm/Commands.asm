@@ -1169,14 +1169,17 @@ cmdFE:
 	call	GetCommandDataFast	; |
 	mov	$17, a			;/
 
-	mov	a, x			;\
-	mov	y, a			; |
-	inc	y			; | Get block start address
-	inc	y			; | to YA
-	mov	a, ($40)+y		; |
-	push	a			; |
-	inc	y			; |
-	mov	a, ($40)+y		; |
+	decw	$40			;\
+	decw	$40			; | Get first phrase address
+
+	call	L_0BF0
+	movw	$14, ya
+	mov	a, x
+	mov	y, a
+	mov	a, ($14)+y		; | Get block start address
+	push	a			; | to YA
+	inc	y
+	mov	a, ($14)+y		; |
 	mov	y, a			; |
 	pop	a			;/
 

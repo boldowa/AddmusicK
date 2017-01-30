@@ -2051,16 +2051,7 @@ L_10BF:
 	cmp	a, #$da					; \ Anything less than $DA is a note (or percussion, which counts as a note)
 	bcc	L_10D1					; / So we have to key off in preparation
 	cmp	a, #$fe					;\
-	bne	.cmd_fb					; |
-	inc	y					; |
-	mov	a, ($14)+y				; | $fe is jump command.
-	push	a					; | 
-	inc	y					; |
-	mov	a, ($14)+y				; |
-	mov	y, a					; |
-	pop	a					; |
-	bra	Continue_skip				;/
-.cmd_fb
+	beq	L_10D1					;/  end jump cmd
 	push	y					;
 	cmp	a, #$fb					; \ FB is a variable-length command.
 	bne	.normalCommand				; / So it has special handling.
