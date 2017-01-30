@@ -1092,28 +1092,44 @@ ClearRemoteCodeAddressesPre:
 	
 ClearRemoteCodeAddresses:
 	mov	a, #$00
-cmdRemoteCmdResetAll:
+RemoteCmdResetAll:
 ; Reset Key-ON type remote command
-	call	cmdRemoteCmdResetKOn
+	call	cmdRemoteCmdResetKOn2
 
 ; Reset Remote command 1 - ...
-cmdRemoteCmdResetVar:
+RemoteCmdResetVar:
 	mov	!remoteCodeTargetAddr+1+x, a
 	mov	!remoteCodeTargetAddr+x, a
 	mov	!remoteCodeTimeValue+x, a
 	mov	!remoteCodeTimeLeft+x, a
 	mov	!remoteCodeType+x, a
-	mov	!remoteCodeTargetAddr+x, a
-	mov	!remoteCodeTargetAddr+1+x, a
 	mov	!runningRemoteCode, a
 	ret
 }
 
 ;---------------------------------------
+; Reset Remote command All
+;---------------------------------------
+cmdRemoteCmdResetAll:
+{
+	mov	x, $46
+	bra	RemoteCmdResetAll
+}
+;---------------------------------------
+; Reset Non-KeyOn Remote command
+;---------------------------------------
+cmdRemoteCmdResetVar:
+{
+	mov	x, $46
+	bra	RemoteCmdResetVar
+}
+;---------------------------------------
 ; Reset Key-ON type Remote command
 ;---------------------------------------
 cmdRemoteCmdResetKOn:
 {
+	mov	x, $46
+cmdRemoteCmdResetKOn2:
 	mov	!remoteCodeTargetAddr2+1+x, a		; | Note start code; get the address back and store it where it belongs.
 	mov	!remoteCodeTargetAddr2+x, a		; /
 	ret

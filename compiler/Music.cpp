@@ -579,13 +579,14 @@ void Music::parseGlobalVolumeCommand()
 
 	if (text[pos] == ',')
 	{
+		pos++;
+		skipSpaces;
+
 		if (targetAMKVersion < 3)
 			error("cmd \"vXX,YY\" - " AMK3REQMSG);
 
 		duration = volume;
 
-		pos++;
-		skipSpaces;
 		volume = getInt();
 		if (volume == -1) error("Error parsing global volume (\"w\") command.")
 	}
@@ -615,13 +616,14 @@ void Music::parseVolumeCommand()
 
 	if (text[pos] == ',')
 	{
+		pos++;
+		skipSpaces;
+
 		if (targetAMKVersion < 3)
 			error("cmd \"wXX,YY\" - " AMK3REQMSG);
 
 		duration = volume;
 
-		pos++;
-		skipSpaces;
 		volume = getInt();
 		if (volume == -1) error("Error parsing volume (\"v\") command.")
 	}
@@ -737,13 +739,14 @@ void Music::parseTempoCommand()
 
 	if (text[pos] == ',')
 	{
+		pos++;
+		skipSpaces;
+
 		if (targetAMKVersion < 3)
 			error("cmd \"tXX,YY\" - " AMK3REQMSG);
 
 		duration = ltempo;
 
-		pos++;
-		skipSpaces;
 		ltempo = getInt();
 		if (ltempo == -1) error("Error parsing tempo (\"t\") command.")
 	}
@@ -980,6 +983,8 @@ void Music::parseLabelLoopCommand()
 		{
 			if ('!' == text[pos])
 			{
+				pos++;
+
 				//--------------------------------------
 				// Reset RemoteCommand
 				//--------------------------------------
