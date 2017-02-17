@@ -1,0 +1,58 @@
+@charset "utf-8";
+
+table.rammap tr.head > th {
+	text-align: center;
+	border-left: 0;
+	border-right: 0;
+	background-color: yellow;
+	color: black;
+	font-weight: normal;
+}
+
+table.rammap th {
+	text-align: center;
+	border-right: 0;
+	background-color: gray;
+	color: white;
+	font-weight: normal;
+}
+
+table.rammap td {
+	text-align: center;
+}
+
+table.rammap td.dsp {
+	background-color: purple;
+	color: white;
+}
+
+table.rammap td.stack {
+	background-color: brown;
+	color: white;
+}
+
+table.rammap td.issue {
+	background-color: magenta;
+	color: white;
+}
+
+table.rammap td.smw {
+	background-color: red;
+	color: white;
+}
+
+table.rammap td.amk2 {
+	background-color: blue;
+	color: white;
+}
+
+table.rammap td.amk3 {
+	background-color: green;
+	color: white;
+}
+
+table.rammap td.pend {
+	background-color: orange;
+	color: black;
+}
+
