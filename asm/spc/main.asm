@@ -17,10 +17,24 @@
 !false = 0
 !true = 1
 
+;-----------------------------------------------------------
+; OPTIONS
+;-----------------------------------------------------------
+
+
 !PSwitchIsSFX = !false		; If you set this to true, then the P-switch song will be a sound effect
 				; instead of a song that interrupts the current music.
 				; Note, however, that it is hardcoded and cannot be changed unless you
 				; do it yourself.
+
+
+!MusicSlowDownReduce = !true	; Enabling this option can reduce music slowdown.
+				; However, this option may cause the SFX tempo to slow down.
+				; If you dislike the tempo down of SFX, please disable it.
+
+
+;===================================================================================================
+
 
 ;Potential Optimization:
 ;

@@ -22,7 +22,9 @@ ProcessAPU2Input:
 	mov	a, !RegValue+2
 	bmi	FadeOut		
 	beq	L_0BE7
-	jmp	PlaySong             ; play song in A, see S6_PlaySong.asm
+	call	PlaySong            ; play song in A, see S6_PlaySong.asm
+	mov	a, !RegTimer0			; read counter for clear
+	ret
 L_0BE7:
 	mov	a, !SongCheckWait	;* if $0c is #$01, go to L_0C01, if it's #$02 or higher, return, if it's #$00, check if !CurrentSong is valid and if it is, go to L_0C46
 	bne	L_0BFE				; see S6A_SongRead.asm, close enough to not need a jump unless this is edited

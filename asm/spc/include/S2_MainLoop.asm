@@ -3,15 +3,22 @@ MainLoop:
 	print "MainLoopPos: $",pc
 	mov   y, !RegTimer0
 	beq   MainLoop             ; wait for counter 0 increment, used to regulate the process to only at a rate that would sync with the tempo
+if !MusicSlowDownReduce = !true
+	mov   !TaskCounter, y
+else
 	push  y
+endif
 
+TaskLoop:
 	mov   a, #$38					;\
+if !MusicSlowDownReduce = !false
 	mul   ya						; |
+endif
 	clrc							; | $44 = $44 + ((!RegTimer0 * 38) AND #$00FF))
 	adc   a, !RegisterCheckCalculate; |
 	mov   !RegisterCheckCalculate, a;/
-	bcc   L_0573					;\	Only check 5A22 interaction registers if $44 + ((Tempo * 38) AND #$00FF) was not more than #$FF
-	inc   !RegisterCheckCounter		;/	Updates every time a cycle checks APU0, APU1, APU2 and APU3
+	bcc   L_0573					;	Only check 5A22 interaction registers if $44 + ((Tempo * 38) AND #$00FF) was not more than #$FF
+									;	Updates every time a cycle checks APU0, APU1, APU2 and APU3
 	
 	call	ProcessSFX
 	
@@ -35,8 +42,10 @@ MainLoop:
 +
 L_0573:
 	mov   a, !Tempo
+if !MusicSlowDownReduce = !false
 	pop   y						
 	mul   ya					; !RegTimer0 * !Tempo. It's not necessarily going to be 0 just because it's 0 when the main loop proceeds!
+endif
 	clrc
 	adc   a, !TempoSyncedTimer
 	mov   !TempoSyncedTimer, a
@@ -47,18 +56,16 @@ L_0573:
 L_0586:
 	mov   x, #$02
 	call  ReadInputRegister             ; read/send APU2
+if !MusicSlowDownReduce = !true
+	dbnz  !TaskCounter, TaskLoop
+endif
 	bra MainLoop					; disabled byte sending to try to optimize code
-	;setp							; MODIFIED CODE, *setp indicates it's actually $01xx, not $00xx
-	;movw  ya, !SendByte1_Short		;
-	;clrp							; Send the output values two at a time.
-	;movw  !RegCPU_IO, ya			;*Sends $166 and $167 to the 5A22 registers $2140 and @2411
-	;setp							;
-	;movw  ya, !SendByte2_Short		;
-	;clrp							;
-	;movw  !RegCPU_IO_2, ya			;*Sends $168 and $169 to the 5A22 registers $2142 and $2143
-	
-	;bra   MainLoop             ; restart main loop
 L_058D:
+
+if !MusicSlowDownReduce = !true
+	dbnz  !TaskCounter, TaskLoop
+endif
+
 	mov   a, !CurrentSong      ; if writing 0 to APU2 then
 	beq   MainLoop             ;   restart main loop
 								; Execute code for each channel.

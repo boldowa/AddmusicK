@@ -31,7 +31,7 @@
 
 !Transpose				= $43		;* One byte, used to indicate the transposition for the song. #$00 = unaltered
 !RegisterCheckCalculate	= $44		;* One byte, updates in order to determine how frequently it should read the registers in a way that moderately syncs with the tempo
-!RegisterCheckCounter	= $45		;* One byte, updates every time the registers have read in a cycle, probably to reduce strain on the APU
+!TaskCounter			= $45		;* One byte, used to task loop counter.
 !CurrentChannel			= $46		;* Byte indicating the current channel*2 (i.e. channel 7 = $0E)
 !ChannelKeyUpdate		= $47		;* One byte, one bit per channel. Bit active is a channel that needs a key updated
 !ChannelProcessingFlags = $48		;* One byte, one bit per channel. Bit active is current channel
