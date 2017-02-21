@@ -250,6 +250,7 @@ cmdE5:					; Tremolo on
 	mov   !TremoloDuration+x, a
 	call  GetCommandDataFast
 ;cmdE6:					; Normally would be tremolo off
+cmdTremoloOff:
 	mov   x, !CurrentChannel
 	mov   !Tremolo+x, a
 	ret
@@ -282,7 +283,7 @@ cmdE6:					; Second loop
 	mov   !SubloopPreserveByte+x,a	; | Save the current song position into $01e0
 	mov   a,!ChannelHiByte+x		; |
 	mov   !SubloopPreserveHiByte+x,a; /
-	mov   a,#$ff				; \ ?
+	mov   a,#$ff				; \ Set init loop code(#$ff means loop count didn't init.)
 	mov   !SubloopCounter+x,a	; / * done to tell the SPC engine that when it meets the subloop that it is the first loop
 	ret				;
 label2:					;
@@ -426,6 +427,13 @@ L_0E55:
 	call  GetCommandDataFast
 	
 	mov   !PitchEnvelopeSemitone+x, a ;$0321+x
+	ret
+}
+
+cmdPitchEnvOff:
+{
+	mov   x, !CurrentChannel
+	mov   !PitchEnvelopeDuration+x, a
 	ret
 }
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -636,25 +644,27 @@ cmdF4:					; Misc. command
 	call	GetCommandData
 	asl	a
 	mov	x,a
+	mov	a, #0
 	jmp	(SubC_table+x)
 
 SubC_table:
-	dw	cmdYoshiBongoToggleCh5Only
-	dw	cmdLegato
-	dw	cmdLightStaccato
-	dw	cmdEchoToggle
-	dw	$0000
-	dw	cmdSyncSNES
-	dw	cmdYoshiBongoToggle
-	dw	cmdNoTempoHike
-	dw	cmdVTableToggle
-	dw	cmdInstRestore
-	dw  cmdNothing
+	dw	cmdYoshiBongoToggleCh5Only		; $00
+	dw	cmdLegato				; $01
+	dw	cmdLightStaccato			; $02
+	dw	cmdEchoToggle				; $03
+	dw	$0000					; $04
+	dw	cmdSyncSNES				; $05
+	dw	cmdYoshiBongoToggle			; $06
+	dw	cmdNoTempoHike				; $07
+	dw	cmdVTableToggle				; $08
+	dw	cmdInstRestore				; $09
+	dw	cmdTremoloOff				; $0A
+	dw	cmdPitchEnvOff				; $0B
+	dw	cmdRemoteCmdResetAll			; $0C
+	dw	cmdRemoteCmdResetKOn			; $0D
+	dw	cmdRemoteCmdResetVar			; $0E
 	
-cmdNothing:
-	ret
 cmdSyncSNES:
-	mov    a, #$00			;\*Clears the first byte that it would send
 	mov    !SendByte1B, a	;|*but for whatever reason, does not do so for the second set, only the high byte and byte of the first are modified
 	mov    !SendByte1, a	;/
 	mov	a,#$02				; bit 2 is the toggle for sync in $0160
@@ -702,8 +712,6 @@ cmdEchoToggle:
 
 	
 cmdNoTempoHike:
-	mov	$ffff, a					;* seems dangerous to change this byte . . . .
-	mov	a, #$00						; \ 
 	mov	!LoTimeTempoSpeedGain, a	; | Set the tempo to normal.
 	mov	x, !CurrentChannel			; |
 	mov	a, !Tempo					; |
@@ -716,7 +724,6 @@ cmdVTableToggle:
 	
 cmdInstRestore:
 	mov     x, !CurrentChannel					; \ 
-	mov	a, #$00				; | Turn the current instrument back on.
 	mov	!BackupSRCN+x, a		; | And make sure it's an instrument, not a sample or something.
 	jmp	RestoreInstrumentInformation	; / This ensures stuff like an instrument's ADSR is restored as well.
 	
@@ -952,19 +959,52 @@ ClearRemoteCodeAddressesPre:
 	
 ClearRemoteCodeAddresses:
 	mov	a, #$00
-	mov	!remoteCodeTargetAddr2+1+x, a
-	mov	!remoteCodeTargetAddr2+x, a
+RemoteCmdResetAll:
+; Reset Key-ON type remote command
+	call	cmdRemoteCmdResetKOn2
+
+; Reset Remote command 1 - ...
+RemoteCmdResetVar:
 	mov	!remoteCodeTargetAddr+1+x, a
 	mov	!remoteCodeTargetAddr+x, a
 	mov	!remoteCodeTimeValue+x, a
 	mov	!remoteCodeTimeLeft+x, a
 	mov	!remoteCodeType+x, a
-	mov	!remoteCodeTargetAddr+x, a
-	mov	!remoteCodeTargetAddr+1+x, a
 	mov	!runningRemoteCode, a
 	ret
 }
 
+;---------------------------------------
+; Reset Remote command All
+;---------------------------------------
+cmdRemoteCmdResetAll:
+{
+	mov	x, !CurrentChannel
+	bra	RemoteCmdResetAll
+}
+;---------------------------------------
+; Reset Non-KeyOn Remote command
+;---------------------------------------
+cmdRemoteCmdResetVar:
+{
+	mov	x, !CurrentChannel
+	bra	RemoteCmdResetVar
+}
+;---------------------------------------
+; Reset Key-ON type Remote command
+;---------------------------------------
+cmdRemoteCmdResetKOn:
+{
+	mov	x, !CurrentChannel
+cmdRemoteCmdResetKOn2:
+	mov	!remoteCodeTargetAddr2+1+x, a		; | Note start code; get the address back and store it where it belongs.
+	mov	!remoteCodeTargetAddr2+x, a		; /
+	ret
+}
+
+;---------------------------------------
+; Subroutine-break command
+;---------------------------------------
 cmdFD:
 cmdFE:
 cmdFF:
