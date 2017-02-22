@@ -803,6 +803,8 @@ SubC_table2:
 	dw	.reserveBuffer		; 04
 	dw	.gainRest		; 05
 	dw	.manualVTable		; 06
+	dw	.SetPWMBrrNum		; 07
+	dw	.SetPWMFreq		; 08
 
 .PitchMod
 	call    GetCommandData		; \ Get the next byte
@@ -879,6 +881,14 @@ SubC_table2:
 	mov	x, !CurrentChannel			;
 	ret				; /
 	
+.SetPWMBrrNum
+	call	GetCommandData
+	jmp	SetPWMBrrPtr
+
+.SetPWMFreq
+	call	GetCommandData
+	mov	($100+!PWMFreq), a
+	ret
 }
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
 cmdFB:					; Arpeggio command.

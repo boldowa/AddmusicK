@@ -104,6 +104,8 @@ incsrc "include/S8_RemoteCommands.asm"	;S8_RemoteCommands.asm		L_10A1
 
 incsrc "include/S9_UploadRoutine.asm"	;S9_UploadRoutine.asm		L_12F2
 										;***(calls InstrumentData.asm)***	
+
+incsrc "include/SA_ProcessPWM.asm"	;SA_ProcessPWM.asm		ProcessPWM
 		
 SFXTable0:
 SFXTable1:

@@ -141,7 +141,12 @@
 !SendByte2				= $0168 ;\*16-bit, note that these are effectively unused by normal song commands since the only sync commands just set $0166-$0167!
 !SendByte2B				= $0169 ;/
 !SendByte2_Short		= $68
-;$016A-$016F???
+;$016A-$016F PWM Control RAM
+!PWMReserved			= $6a  ;* 1 byte, currently unused.
+!PWMBrrPtr				= $6b  ;* 2 bytes
+!PWMPulsePtr			= $6d  ;* 1 byte
+!PWMSyncedTimer         = $6e  ;* 1 byte
+!PWMFreq				= $6f  ;* 1 byte
 
 ;$0170-$0181???
 !remoteCodeTargetAddr2 	= $0190	; The address to jump to for "start of note" code.  16-bit.

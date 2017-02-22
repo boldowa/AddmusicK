@@ -7,6 +7,7 @@ if !MusicSlowDownReduce = !true
 	mov   !TaskCounter, y
 else
 	push  y
+	push  y
 endif
 
 TaskLoop:
@@ -17,7 +18,7 @@ endif
 	clrc							; | $44 = $44 + ((!RegTimer0 * 38) AND #$00FF))
 	adc   a, !RegisterCheckCalculate; |
 	mov   !RegisterCheckCalculate, a;/
-	bcc   L_0573					;	Only check 5A22 interaction registers if $44 + ((Tempo * 38) AND #$00FF) was not more than #$FF
+	bcc   PWMSync					;	Only check 5A22 interaction registers if $44 + ((Tempo * 38) AND #$00FF) was not more than #$FF
 									;	Updates every time a cycle checks APU0, APU1, APU2 and APU3
 	
 	call	ProcessSFX
@@ -40,6 +41,25 @@ endif
 	beq	+
 	mov	!RegValue+3, #$00
 +
+
+;--------- PWM Function
+PWMSync:
+	setp
+	mov   a, !PWMFreq
+	;beq   pwmNop
+if !MusicSlowDownReduce = !false
+	pop   y
+	mul   ya
+endif
+	clrc
+	adc   a, !PWMSyncedTimer
+	mov   !PWMSyncedTimer, a
+	bcc   pwmNop
+PWMCall:
+	call  ProcessPWM
+pwmNop:
+	clrp
+
 L_0573:
 	mov   a, !Tempo
 if !MusicSlowDownReduce = !false

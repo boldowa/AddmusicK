@@ -56,13 +56,27 @@ L_0B6D:
 	dec	x
 	bpl	L_0B6D	
 	%PlaySongClearOutB()	; a is still #$00, so the macro will be fine. See S0_Macros.asm
+
 	mov	y, #$20
-	
 L_0B9C:
 	mov	$02ff+y, a		
 	dbnz	y, L_0B9C		; Clear out 0300-031f (this is a useful opcode...)
+
+	;--- reset PWM RAM
+	mov	y, #6
+-	mov	!PWMReserved+$ff+y, a
+	dbnz	y, -
 	
 	call	EffectModifier
+
+	;--- Init PWM default code
+	mov	a, #lo8(ProcessPWM)
+	mov	PWMCall+1, a
+	mov	a, #hi8(ProcessPWM)
+	mov	PWMCall+2, a
+	mov	y, #20
+	call	SetPWMBrrPtr
+
 	bra	L_0BA5
 ;
 L_0BA3:
