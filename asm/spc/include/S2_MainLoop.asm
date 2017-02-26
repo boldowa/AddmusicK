@@ -70,8 +70,8 @@ endif
 	adc   a, !TempoSyncedTimer
 	mov   !TempoSyncedTimer, a
 	bcc   L_058D				; if $49 + (!RegTimer0 * !Tempo) < #$0100, then don't check for updated music data, effectively is $49 += Tempo * (#$00-to-#$0F)
-	;mov   a, !PauseMusic		;\*omitted for now since you don't need to worry about processing overhead while paused
-	;bne   L_0586				;/ if music is paused, then you don't need to know that the music has updated yet
+	mov   a, !PauseMusic		; Don't continue reading music info if paused. (Allows it to hold the current position in the song)
+	bne   L_0586				
 	call  ProcessAPU2Input		; Also handles playing the current music.
 L_0586:
 	mov   x, #$02
